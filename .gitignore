@@ -68,6 +68,8 @@ ScaffoldingReadMe.txt
 # StyleCop
 StyleCopReport.xml
 
+host/memflow/*
+host/build/*
 # Files built by Visual Studio
 *_i.c
 *_p.c
