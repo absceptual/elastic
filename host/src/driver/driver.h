@@ -3,20 +3,24 @@
 
 #include <iostream>
 #include <cstdint>
+#include <memory>
 
 #include "memflow.hpp"
 #include "process.h"
 
 class Driver {
-private:
+public:
     Inventory* inventory{ };
     ConnectorInstance<> connector, *connection = &connector;
     OsInstance<> os{ };
+    MemoryView memory_view{ };
 
 public:
     Driver( );
 
-    Process find_process(std::string process_name);
+    Process find_fortnite(  );
+    OsInstance<> get_os( );
+
 };
 
 #endif

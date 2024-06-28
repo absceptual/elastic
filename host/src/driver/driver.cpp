@@ -14,28 +14,35 @@ Driver::Driver( ) {
 		std::exit(-1);
 	}
 
-	if ( mf_inventory_create_connector(inventory, "qemu", "", &connector ) ) {
+	if ( mf_inventory_create_connector( inventory, "qemu", "", &connector ) ) {
 		std::cout << "[driver::init] failed to initalize the inventory connector\n";
-		mf_inventory_free(inventory);
-		std::exit(-1);
+		mf_inventory_free( inventory );
+		std::exit( -1 );
 	}
 
-	if ( mf_inventory_create_os(inventory, "win32", "", connection, &os) ) {
+	if ( mf_inventory_create_os( inventory, "win32", "", connection, &os ) ) {
 		std::cout << "[driver::init] unable to initalize os plugin\n";
-		std::exit(-1);
+		std::exit( -1 );
 	}
+	
 	std::cout << "[driver::init] memflow connector initalized: " << std::hex << connector.container.instance.instance << "\n";
 }
 
-Process Driver::find_process(std::string process_name) {
-	ProcessInstance<> target{ };
-	if ( os.process_by_name(STR(process_name.c_str()), &target ) ) 
-		std::cout << "[driver!find_process] failed to find process " << process_name << "\n";
+
+Process Driver::find_fortnite(  ) {
+
+	auto target = std::make_shared< ProcessInstance< > >( );
+	if ( os.process_by_name( STR( "FortniteClient" ), target.get( ) ) ) {
+		std::cout << "[driver!find_process] failed to find FortniteClient\n";
+		target.reset( );
+		std::exit(-1);
+	}
 	
-	return Process(target);
-	//const ProcessInfo* info{ target.info( ) };
-	//printf("%s process found: 0x%lx] %d %s %s\n", process_name.c_str( ), info->address,
-	//				 info->pid, info->name, info->path);
+	std::cout << "[driver!find_process] found FortniteClient!\n";
+	std::cout << std::dec << target.get()->info()->pid << '\n';
+	return Process( target, os );
+}
 
-
+OsInstance<> Driver::get_os() {
+	return os;
 }
