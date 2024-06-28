@@ -2,31 +2,31 @@
 #include <stdio.h>
 #include <vector>
 
-void fmt_arch(char *arch, int n, ArchitectureIdent ident);
+void fmt_arch(char* arch, int n, ArchitectureIdent ident);
 
-int main(int argc, char *argv[]) {
-	mf_log_init(LevelFilter::LevelFilter_Info);
+int main(int argc, char* argv[]) {
+	log_init(LevelFilter::LevelFilter_Info);
 
-	Inventory *inventory = mf_inventory_scan();
+	Inventory* inventory = inventory_scan();
 
 	if (!inventory) {
-		mf_log_error("unable to create inventory");
+		log_error("unable to create inventory");
 		return 1;
 	}
 
 	printf("inventory initialized: %p\n", inventory);
 
-	const char *conn_name = argc > 1? argv[1]: "qemu";
-	const char *conn_arg = argc > 2? argv[2]: "";
-	const char *os_name = argc > 3? argv[3]: "win32";
-	const char *os_arg = argc > 4? argv[4]: "";
+	const char* conn_name = argc > 1 ? argv[1] : "qemu";
+	const char* conn_arg = argc > 2 ? argv[2] : "";
+	const char* os_name = argc > 3 ? argv[3] : "win32";
+	const char* os_arg = argc > 4 ? argv[4] : "";
 
-	ConnectorInstance<> connector, *conn = conn_name[0] ? &connector : nullptr;
+	ConnectorInstance<> connector, * conn = conn_name[0] ? &connector : nullptr;
 
 	if (conn) {
-		if (mf_inventory_create_connector(inventory, conn_name, conn_arg, &connector)) {
+		if (inventory_create_connector(inventory, conn_name, conn_arg, &connector)) {
 			printf("unable to initialize connector\n");
-			mf_inventory_free(inventory);
+			inventory_free(inventory);
 			return 1;
 		}
 
@@ -35,13 +35,13 @@ int main(int argc, char *argv[]) {
 
 	OsInstance<> os;
 
-	if (mf_inventory_create_os(inventory, os_name, os_arg, conn, &os)) {
+	if (inventory_create_os(inventory, os_name, os_arg, conn, &os)) {
 		printf("unable to initialize OS\n");
-		mf_inventory_free(inventory);
+		inventory_free(inventory);
 		return 1;
 	}
 
-	mf_inventory_free(inventory);
+	inventory_free(inventory);
 
 	printf("os initialized: %p\n", os.container.instance.instance);
 
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 
 	int i = 0;
 
-	os.process_info_list_callback([&i](ProcessInfo info) {
+	os.process_info_list_callback([i](ProcessInfo info) mutable {
 		char sys_arch[11];
 		char proc_arch[11];
 
@@ -67,20 +67,20 @@ int main(int argc, char *argv[]) {
 		printf("%-4d | %-8d | %-10s | %-10s | %s\n", i++, info.pid, sys_arch, proc_arch, info.name);
 
 		return true;
-	});
+		});
 
 	return 0;
 }
 
-void fmt_arch(char *arch, int n, ArchitectureIdent ident) {
+void fmt_arch(char* arch, int n, ArchitectureIdent ident) {
 	switch (ident.tag) {
-		case ArchitectureIdent::Tag::ArchitectureIdent_X86:
-			snprintf(arch, n, "X86_%d", ident.x86._0);
-			break;
-		case ArchitectureIdent::Tag::ArchitectureIdent_AArch64:
-			snprintf(arch, n, "AArch64");
-			break;
-		default:
-			snprintf(arch, n, "Unknown");
+	case ArchitectureIdent::Tag::ArchitectureIdent_X86:
+		snprintf(arch, n, "X86_%d", ident.x86._0);
+		break;
+	case ArchitectureIdent::Tag::ArchitectureIdent_AArch64:
+		snprintf(arch, n, "AArch64");
+		break;
+	default:
+		snprintf(arch, n, "Unknown");
 	}
 }
