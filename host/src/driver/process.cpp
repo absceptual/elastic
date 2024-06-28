@@ -23,12 +23,13 @@ Process::Process(std::shared_ptr<ProcessInstance<>> instance, OsInstance<>& os) 
 	{
 		printf("Can't find base module info for process %s. Trying with a new dtb...\n", m_name.c_str());
 
+        ProcessInstance<>* tmp_proc = m_instance.get();
 		for (size_t dtb = 0; dtb <= SIZE_MAX; dtb += 0x1000)
 		{
 			info.dtb1 = dtb;
 			os.process_by_info(info, m_instance.get());
 
-			if (!m_instance.get()->module_by_name(STR("FortniteClient-Win64-Shipping.exe"), &module_info))		
+			if (!tmp_proc->module_by_name(STR("FortniteClient-Win64-Shipping.exe"), &module_info))		
 				break;
 
 			if (dtb == SIZE_MAX)
@@ -37,7 +38,7 @@ Process::Process(std::shared_ptr<ProcessInstance<>> instance, OsInstance<>& os) 
 				exit(-3);
 			}
 
-            m_instance.get()->set_dtb(dtb, 0);
+            tmp_proc->set_dtb(dtb, 0);
 		}
 	}
 
