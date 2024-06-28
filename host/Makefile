@@ -1,19 +1,17 @@
-CC = g++
-CFLAGS = -g -O0 -pedantic -std=c++14 -I../../../memflow-ffi/ -L../../../target/release
-LIBS=-lm -ldl -lpthread -l:libmemflow_ffi.a
+.phony: all release debug clean
+.DEFAULT_GOAL := debug
 
-ODIR=./
+all:
+	make debug
+	make release
 
-%.o: %.cpp $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+release:
+	mkdir -p build/release
+	cd build/release && cmake ../.. -DCMAKE_INSTALL_LIBDIR=/usr/local/lib -DCMAKE_BUILD_TYPE=Release && make all
 
-plist.out: plist.o
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
-
-.PHONY: all
-all: plist.out
-
-.DEFAULT_GOAL := all
+debug:
+	mkdir -p build/debug
+	cd build/debug && cmake ../.. -DCMAKE_INSTALL_LIBDIR=/usr/local/lib -DCMAKE_BUILD_TYPE=Debug && make all
 
 clean:
-	rm -f $(ODIR)/*.o
+	rm -rf build
