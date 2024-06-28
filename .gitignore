@@ -68,6 +68,7 @@ ScaffoldingReadMe.txt
 # StyleCop
 StyleCopReport.xml
 
+host/memflow/
 host/memflow/*
 host/build/*
 # Files built by Visual Studio
