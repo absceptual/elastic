@@ -1,3 +1,6 @@
+#ifndef MEMORY_H
+#define MEMORY_H
+
 #include <cstdint>
 #include <iostream>
 #include <memory>
@@ -7,16 +10,16 @@
 #include "memflow.hpp"
 
 namespace memory {
-    std::mutex m{ };
-    std::uintptr_t base{ };
+    inline std::mutex m{ };
+    inline std::uintptr_t base{ };
 
-    Inventory* inventory{ };
-    ConnectorInstance< > connector, *connection = &connector;
-    OsInstance< > os{ };
-    MemoryView memory_view{ };
-    ProcessInfo* info{ };
-    ProcessInstance< > instance{ };
-    IntoProcessInstance< > process{ };
+    inline Inventory* inventory{ };
+    inline ConnectorInstance< > connector, *connection = &connector;
+    inline OsInstance< > os{ };
+    inline MemoryView memory_view{ };
+    inline ProcessInfo* info{ };
+    inline ProcessInstance< > instance{ };
+    inline IntoProcessInstance< > process{ };
     
     bool init( );
     bool attach( );
@@ -64,3 +67,5 @@ namespace memory {
 
     
 }
+
+#endif
