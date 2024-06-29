@@ -19,7 +19,7 @@ namespace memory {
     inline ConnectorInstance< > connector, *connection = &connector;
     inline OsInstance< > os{ };
     inline MemoryView memory_view{ };
-    inline ProcessInfo* info{ };
+    inline ProcessInfo info{ }; // change back to ProcessInfo* if CR3 no longer works
     inline ProcessInstance< > instance{ };
     inline IntoProcessInstance< > process{ };
     

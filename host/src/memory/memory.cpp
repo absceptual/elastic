@@ -68,6 +68,7 @@ bool memory::attach( ) {
 	// Create a process with the new DTB we found
     os.clone().into_process_by_info(info, &process);
     base = module_info.base;
+	memory::info = info;
 
     return true;
 }
