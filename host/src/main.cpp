@@ -1,10 +1,12 @@
-#include "driver/driver.h"
+#include "memory/memory.h"
 #include <vector>
 
 #include <thread>
 #include <chrono>
 
 int main(int argc, char *argv[]) {
+
+	/*
 	Driver driver{ };
 	auto process = driver.find_fortnite( );
 	auto base = process.get_base();
@@ -74,6 +76,6 @@ int main(int argc, char *argv[]) {
 	std::cout << AmmoCount << '\n';
 	std::cout << "i love xeb!\n";
 	*/
-
+	
 	return 0;
 }

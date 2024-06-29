@@ -2,29 +2,25 @@
 cmake_minimum_required(VERSION 3.9)
 project(memflow-cmake-example VERSION 1.0 DESCRIPTION "memflow-cmake-example")
 
-# Assuming memflow is located under host/memflow
-set(MEMFLOW_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/memflow/memflow-ffi")
-set(MEMFLOW_LIBRARY_DEBUG "${CMAKE_SOURCE_DIR}/memflow/target/debug/libmemflow_ffi.a")
-set(MEMFLOW_LIBRARY_RELEASE "${CMAKE_SOURCE_DIR}/memflow/target/release/libmemflow_ffi.a")
-
-# Debug messages to verify paths
-message(STATUS "MEMFLOW_INCLUDE_DIR: ${MEMFLOW_INCLUDE_DIR}")
-message(STATUS "MEMFLOW_LIBRARY_DEBUG: ${MEMFLOW_LIBRARY_DEBUG}")
-message(STATUS "MEMFLOW_LIBRARY_RELEASE: ${MEMFLOW_LIBRARY_RELEASE}")
-
-# Include directories
-include_directories(${MEMFLOW_INCLUDE_DIR})
-
-# Add library
-add_library(memflow_ffi STATIC IMPORTED)
-set_target_properties(memflow_ffi PROPERTIES
-    IMPORTED_LOCATION_DEBUG ${MEMFLOW_LIBRARY_DEBUG}
-    IMPORTED_LOCATION_RELEASE ${MEMFLOW_LIBRARY_RELEASE}
-)
+# load memflow project
+include(ExternalProject)
+set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/rs)
+ExternalProject_Add(
+    memflow
+    GIT_REPOSITORY "https://github.com/memflow/memflow"
+    GIT_SHALLOW true
+    GIT_PROGRESS true
+    GIT_TAG "0.2.1"
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND cargo build --all-features --workspace
+    COMMAND cargo build --release --all-features --workspace
+    BINARY_DIR "${CMAKE_BINARY_DIR}/rs/src/memflow"
+    INSTALL_COMMAND ""
+    LOG_BUILD ON)
 
 find_package(Threads)
 
-# Create binary from /src
+# create binary from /src
 file(GLOB_RECURSE sample-cpp-sources "src/*.cpp")
 file(GLOB_RECURSE sample-sources "src/*.c")
 file(GLOB_RECURSE sample-headers "src/*.h")
@@ -34,20 +30,21 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(
     example
     ${sample-sources}
-    ${sample-cpp-sources}
-    ${sample-headers}
-)
+	${sample-cpp-sources}
+    ${sample-headers})
+
+add_dependencies(
+    example
+    memflow)
 
 target_link_libraries(
     example
-    debug ${MEMFLOW_LIBRARY_DEBUG}
-    optimized ${MEMFLOW_LIBRARY_RELEASE}
+    debug "${CMAKE_BINARY_DIR}/rs/src/memflow/target/debug/libmemflow_ffi.a"
+    optimized "${CMAKE_BINARY_DIR}/rs/src/memflow/target/release/libmemflow_ffi.a"
     ${CMAKE_THREAD_LIBS_INIT}
     ${CMAKE_DL_LIBS}
-    m
-)
+    m)
 
 target_include_directories(
     example PUBLIC
-    ${MEMFLOW_INCLUDE_DIR}
-)
+    "${CMAKE_BINARY_DIR}/rs/src/memflow/memflow-ffi")
