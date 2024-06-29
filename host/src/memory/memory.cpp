@@ -1,5 +1,6 @@
 #include "memory.h"
 
+// Initalize memflow and its required plugins for memory read and write
 bool memory::init( ) {
     log_init( LevelFilter::LevelFilter_Info );
 	inventory = inventory_scan( );
@@ -29,25 +30,32 @@ bool memory::init( ) {
 }
 
 bool memory::attach( ) {
-	if ( os.process_by_name( "FortniteClient", &instance ) ) {
+
+    // Is fortnite running on the machine right now?
+	if ( os.process_by_name( STR( "FortniteClient" ), &instance ) ) {
 		std::cout << "[driver!find_process] failed to find Fortnite\n";
 		return false;
 	}
 	
 	ProcessInfo info{ };
     info.dtb2 = Address_INVALID;
-	if ( os.process_info_by_name( "FortniteClient", &info ) )
+
+    // Something went wrong if Fortnite is running but we cant retrieve the process information.
+	if ( os.process_info_by_name( STR( "FortniteClient" ), &info ) )
         return false;
     
+    // Start looking for the true directory table base if we can't find the module base of Fortnite
    	ModuleInfo module_info{ };
-    if ( instance.module_by_name( "FortniteClient-Win64-Shipping.exe", &module_info ) )
+    if ( instance.module_by_name( STR( "FortniteClient-Win64-Shipping.exe" ), &module_info ) )
 	{
+        // Bruteforce the DTB going page by page
+        // Try setting the DTB to the page we are currently on and see 
 		for ( size_t dtb = 0; dtb <= SIZE_MAX; dtb += 0x1000 )
 		{
 			instance.set_dtb( dtb, Address_INVALID );
 			os.process_by_info( info, &instance );
 
-			if ( !instance.module_by_name( "FortniteClient-Win64-Shipping.exe", &module_info ) )		
+			if ( !instance.module_by_name( STR( "FortniteClient-Win64-Shipping.exe" ), &module_info ) )		
 				break;
 
 			if ( dtb == SIZE_MAX )
@@ -57,6 +65,7 @@ bool memory::attach( ) {
 		}
     }
 
+	// Create a process with the new DTB we found
     os.clone().into_process_by_info(info, &process);
     base = module_info.base;
 
@@ -64,10 +73,12 @@ bool memory::attach( ) {
 }
 
 ModuleInfo memory::get_module( std::string module_name ) {
+	// Don't look for a module if the memory module has not been initialized.
     ModuleInfo info{ };
     if ( !base )
         return info;
 
+	// 
     if ( instance.module_by_name( "FortniteClient-Win64-Shipping.exe", &info ) ) 
         attach( );
     
