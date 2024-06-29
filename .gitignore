@@ -68,7 +68,7 @@ ScaffoldingReadMe.txt
 # StyleCop
 StyleCopReport.xml
 
-
+.vscode/*
 host/memflow/
 host/memflow/*
 host/build/*
