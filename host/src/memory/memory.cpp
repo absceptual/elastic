@@ -78,10 +78,11 @@ ModuleInfo memory::get_module( std::string module_name ) {
     if ( !base )
         return info;
 
-	// 
+	// Did the CR3 change by chance?
     if ( instance.module_by_name( "FortniteClient-Win64-Shipping.exe", &info ) ) 
         attach( );
     
+	// Loop through until we find a matchmaking
 	instance.module_list_callback( NULL, [ & ]( ModuleInfo module_info ) {
         if ( module_name.compare( module_info.name ) ) 
             return true;
