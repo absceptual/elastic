@@ -1,8 +1,8 @@
 #include "memory.h"
 
 bool memory::init( ) {
-    mf_log_init( LevelFilter::LevelFilter_Info );
-	inventory = mf_inventory_scan( );
+    log_init( LevelFilter::LevelFilter_Info );
+	inventory = inventory_scan( );
 
 	if ( !inventory ) {
 		std::cout << "[driver::init] failed to find a memflow inventory!\n";
@@ -14,13 +14,13 @@ bool memory::init( ) {
 		return false;
 	}
 
-	if ( mf_inventory_create_connector( inventory, "qemu", "", &connector ) ) {
+	if ( inventory_create_connector( inventory, "qemu", "", &connector ) ) {
 		std::cout << "[driver::init] failed to initalize the inventory connector\n";
-		mf_inventory_free( inventory );
+		inventory_free( inventory );
 		return false;
 	}
 
-	if ( mf_inventory_create_os( inventory, "win32", "", connection, &os ) ) {
+	if ( inventory_create_os( inventory, "win32", "", connection, &os ) ) {
 		std::cout << "[driver::init] unable to initalize os plugin\n";
 		return false;
 	}
