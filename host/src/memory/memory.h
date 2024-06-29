@@ -67,6 +67,7 @@ namespace memory {
         return write< T >( address, value );
     }
 
+    std::vector< uintptr_t > signature_scan( ModuleInfo module_info, std::string pattern, std::string mask );
     
 }
 

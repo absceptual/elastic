@@ -2,6 +2,7 @@
 
 // Initalize memflow and its required plugins for memory read and write
 bool memory::init( ) {
+
     log_init( LevelFilter::LevelFilter_Info );
 	inventory = inventory_scan( );
 
@@ -80,7 +81,7 @@ ModuleInfo memory::get_module( std::string module_name ) {
         return info;
 
 	// Did the CR3 change by chance?
-    if ( instance.module_by_name( "FortniteClient-Win64-Shipping.exe", &info ) ) 
+    if ( instance.module_by_name( STR( "FortniteClient-Win64-Shipping.exe" ), &info ) ) 
         attach( );
     
 	// Loop through until we find a matchmaking
@@ -96,3 +97,34 @@ ModuleInfo memory::get_module( std::string module_name ) {
     return info;
 }
 
+std::vector< std::uintptr_t > signature_scan( ModuleInfo module_info, std::string pattern, std::string mask ) {
+
+	if ( !memory::base )
+		return { };
+
+	std::uintptr_t start = module_info.base;
+	std::uintptr_t end = module_info.base + module_info.size;
+
+	std::vector< std::uintptr_t > addresses{ };
+	for ( std::uintptr_t address = start; address < end; ++address ) {
+		bool match = true;
+
+		for ( int i = 0; i < pattern.length( ); ++i ) {
+			if ( mask[ i ] == 'X' || mask[ i ] == 'X' )
+				continue;
+
+			auto byte = memory::read< std::uint8_t >( address );
+			if ( byte != pattern[ i ] ) {
+				match = false;
+				break;
+			}
+		}
+
+		if ( match ) {
+			std::cout << "[memory::signature_scan] found pattern at 0x" << std::hex << address << '\n';
+			addresses.push_back( address );
+		}
+	}
+
+	return addresses;
+}
