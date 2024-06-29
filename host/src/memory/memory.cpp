@@ -52,7 +52,7 @@ bool memory::attach( ) {
         // Try setting the DTB to the page we are currently on and see 
 		for ( size_t dtb = 0; dtb <= SIZE_MAX; dtb += 0x1000 )
 		{
-			instance.set_dtb( dtb, Address_INVALID );
+			info.dtb1 = dtb;
 			os.process_by_info( info, &instance );
 
 			if ( !instance.module_by_name( STR( "FortniteClient-Win64-Shipping.exe" ), &module_info ) )		
