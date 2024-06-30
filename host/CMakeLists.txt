@@ -24,6 +24,7 @@ find_package(Threads)
 file(GLOB_RECURSE sample-cpp-sources "src/*.cpp")
 file(GLOB_RECURSE sample-sources "src/*.c")
 file(GLOB_RECURSE sample-headers "src/*.h")
+file(GLOB_RECURSE sample-headers "src/*.hpp")
 
 set(CMAKE_CXX_STANDARD 17)
 
