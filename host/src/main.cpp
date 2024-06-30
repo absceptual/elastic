@@ -1,8 +1,8 @@
-#include "memory/memory.h"
 #include <vector>
-
 #include <thread>
 #include <chrono>
+
+#include "memory/memory.h"
 
 int main(int argc, char *argv[]) {
 
@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
 	std::cout << "[+] memflow attached to fortnite succesfully\n";
 
-	// bruteforce uworld (pasted from uc)
+	/* bruteforce uworld (pasted from uc)
 	std::uintptr_t va_text = 0;
 	for (int i = 0; i < 25; i++) {
 		std::int32_t address{ };
@@ -31,6 +31,16 @@ int main(int argc, char *argv[]) {
 	std::cout << "\t[+] memory base address: 0x" << std::hex << memory::base << '\n';
 	std::cout << "\t[+] gworld address: 0x" << std::hex << gworld << '\n';
 	std::cout << "\t[+] uworld address: 0x" << std::hex << memory::read< std::uintptr_t >( gworld ) << '\n';
+	*/
+
+	auto world = memory::read< UWorld >( memory::base + offsets::gworld );
+	auto game_instance = world->GetOwningGameInstance( );
+	auto level = world->GetPersistentLevel( );
+	auto localplayer = game_instance->GetLocalPlayer( );
+	auto playercontroller = localplayer->GetPlayerController( );
+	auto pawn = playercontroller->GetControlledPawn( );
+	auto character = pawn->GetCharacter( );
+	auto position = character->GetActorLocation( );
 
 	while ( true ) {
 		std::uintptr_t address{ };
