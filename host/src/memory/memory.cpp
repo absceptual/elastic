@@ -70,6 +70,7 @@ bool memory::attach( ) {
     os.clone().into_process_by_info(info, &process);
     base = module_info.base;
 	memory::info = info;
+	memory::base_module = module_info;
 
     return true;
 }
@@ -97,10 +98,15 @@ ModuleInfo memory::get_module( std::string module_name ) {
     return info;
 }
 
-std::vector< std::uintptr_t > signature_scan( ModuleInfo module_info, std::string pattern, std::string mask ) {
+std::vector< std::uintptr_t > memory::signature_scan( ModuleInfo module_info, std::string pattern, std::string mask ) {
 
 	if ( !memory::base )
 		return { };
+
+	if ( pattern.length( ) != mask.length( ) ) {
+		std::cout << "[memory::signature_scan] pattern and mask must have matching lengths!\n";
+		return { };
+	}
 
 	std::uintptr_t start = module_info.base;
 	std::uintptr_t end = module_info.base + module_info.size;

@@ -22,6 +22,7 @@ namespace memory {
     inline ProcessInfo info{ }; // change back to ProcessInfo* if CR3 no longer works
     inline ProcessInstance< > instance{ };
     inline IntoProcessInstance< > process{ };
+    inline ModuleInfo base_module{ };
     
     bool init( );
     bool attach( );
