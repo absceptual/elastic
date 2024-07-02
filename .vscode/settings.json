@@ -54,5 +54,6 @@
         "thread": "cpp",
         "typeinfo": "cpp"
     },
-    "cmake.sourceDirectory": "/home/absceptual/Desktop/projects/elastic/host"
+    "cmake.sourceDirectory": "/media/hardrive/projects/elastic/host",
+    "C_Cpp.default.compilerPath": "/usr/bin/gcc"
 }
