@@ -69,8 +69,6 @@ ScaffoldingReadMe.txt
 StyleCopReport.xml
 
 .vscode/*
-host/memflow/
-host/memflow/*
 host/build/*
 host/rs/*
 host/CMakeFiles/*
@@ -405,3 +403,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+host/build/*
+build/*
