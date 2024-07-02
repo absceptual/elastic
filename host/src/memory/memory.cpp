@@ -3,8 +3,8 @@
 // Initalize memflow and its required plugins for memory read and write
 bool memory::init( ) {
 
-    log_init( LevelFilter::LevelFilter_Info );
-	inventory = inventory_scan( );
+    mf_log_init( LevelFilter::LevelFilter_Info );
+	inventory = mf_inventory_scan( );
 
 	if ( !inventory ) {
 		std::cout << "[driver::init] failed to find a memflow inventory!\n";
@@ -16,13 +16,13 @@ bool memory::init( ) {
 		return false;
 	}
 
-	if ( inventory_create_connector( inventory, "qemu", "", &connector ) ) {
+	if ( mf_inventory_create_connector( inventory, "kvm", "", &connector ) ) {
 		std::cout << "[driver::init] failed to initalize the inventory connector\n";
-		inventory_free( inventory );
+		mf_inventory_free( inventory );
 		return false;
 	}
 
-	if ( inventory_create_os( inventory, "win32", "", connection, &os ) ) {
+	if ( mf_inventory_create_os( inventory, "win32", "", connection, &os ) ) {
 		std::cout << "[driver::init] unable to initalize os plugin\n";
 		return false;
 	}
@@ -32,6 +32,7 @@ bool memory::init( ) {
 
 bool memory::attach( ) {
 
+	
     // Is fortnite running on the machine right now?
 	if ( os.process_by_name( STR( "FortniteClient" ), &instance ) ) {
 		std::cout << "[driver!find_process] failed to find Fortnite\n";
@@ -63,6 +64,7 @@ bool memory::attach( ) {
                 return false;
 
             instance.set_dtb(dtb, 0);
+
 		}
     }
 
@@ -71,6 +73,7 @@ bool memory::attach( ) {
     base = module_info.base;
 	memory::info = info;
 	memory::base_module = module_info;
+	std::cout << "[memory::attach] dtb = 0x" << std::hex << info.dtb1 << '\n';
 
     return true;
 }
@@ -98,39 +101,37 @@ ModuleInfo memory::get_module( std::string module_name ) {
     return info;
 }
 
-std::vector< std::uintptr_t > memory::signature_scan( ModuleInfo module_info, std::string pattern, std::string mask ) {
+std::uintptr_t memory::signature_scan( ModuleInfo module_info, const char* pattern ) {
 
 	if ( !memory::base )
-		return { };
+		return 0;
 
-	if ( pattern.length( ) != mask.length( ) ) {
-		std::cout << "[memory::signature_scan] pattern and mask must have matching lengths!\n";
-		return { };
-	}
+	std::cout << std::dec << strlen( pattern )  << '\n';
 
+	int pattern_length = strlen( pattern );
 	std::uintptr_t start = module_info.base;
 	std::uintptr_t end = module_info.base + module_info.size;
-
-	std::vector< std::uintptr_t > addresses{ };
-	for ( std::uintptr_t address = start; address < end; ++address ) {
-		bool match = true;
-
-		for ( int i = 0; i < pattern.length( ); ++i ) {
-			if ( mask[ i ] == 'X' || mask[ i ] == 'X' )
+	
+	for ( std::uintptr_t i = 0; i < module_info.size - pattern_length; i++)
+    {
+        bool found = true;
+        for ( std::uintptr_t j = 0; j < pattern_length; j++)
+        {
+			if ( pattern[ j ] == '\xCC' )
 				continue;
 
-			auto byte = memory::read< std::uint8_t >( address );
-			if ( byte != pattern[ i ] ) {
-				match = false;
+			auto byte = memory::read< std::uint8_t >( start + i + j );
+			if ( pattern[ j ] != byte ) {
+				found = false;
 				break;
 			}
+        }
+ 
+		if ( found ) {
+			std::cout << "[memory::signature_scan] found pattern at 0x" << std::hex << start + i << '\n';
+			return start + i;
 		}
+    }
 
-		if ( match ) {
-			std::cout << "[memory::signature_scan] found pattern at 0x" << std::hex << address << '\n';
-			addresses.push_back( address );
-		}
-	}
-
-	return addresses;
+	return 0;
 }

@@ -9,8 +9,6 @@
 
 #include "memflow.hpp"
 
-#define STR( name ) CSliceRef< uint8_t >{ name }
-
 namespace memory {
     inline std::mutex m{ };
     inline std::uintptr_t base{ };
@@ -68,7 +66,7 @@ namespace memory {
         return write< T >( address, value );
     }
 
-    std::vector< uintptr_t > signature_scan( ModuleInfo module_info, std::string pattern, std::string mask );
+    std::uintptr_t signature_scan( ModuleInfo module_info, const char* pattern );
     
 }
 
