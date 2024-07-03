@@ -24,7 +24,8 @@ namespace memory {
     
     bool init( );
     bool attach( );
-    ModuleInfo get_module( std::string module_name );
+    ModuleInfo get_module( const std::string module_name );
+    std::uintptr_t signature_scan( const ModuleInfo module_info, const char* pattern );
 
     template < typename T >
     inline T read( std::uintptr_t address ) {
@@ -66,7 +67,7 @@ namespace memory {
         return write< T >( address, value );
     }
 
-    std::uintptr_t signature_scan( ModuleInfo module_info, const char* pattern );
+   
     
 }
 

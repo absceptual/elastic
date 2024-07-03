@@ -4,8 +4,8 @@
 
 #include "memory/memory.h"
 #include "memory/offsets.hpp"
-
 #include "engine/engine.hpp"
+#include "cheat/aimbot.hpp"
 
 int main( int argc, char *argv[ ] ) {
 
@@ -13,11 +13,24 @@ int main( int argc, char *argv[ ] ) {
 		return -1;
 
 	std::cout << "[+] memflow initalized succesfully\n";
+
+	if ( !aimbot::init( ) )
+		return -1;
+
+	std::cout << "[+] aimbot module initalized succesfully\n";
+
+	std::cout << aimbot::mouse->move( 20000, 400 ) << '\n';
+
 	std::cout << "[!] attempting to fix directory table base (cr3)\n";
 
-	if ( !memory::attach( ) )
-		return -2;
 
+	
+	//if ( !memory::attach( ) )
+		//return -2;
+
+	
+
+	/*
 	std::cout << "[+] memflow attached to fortnite succesfully\n";
 
 	std::uintptr_t va_text = 0;
@@ -28,14 +41,13 @@ int main( int argc, char *argv[ ] ) {
 			va_text = memory::base + ( ( i + 1 ) * 0x1000 );
 	}
 
-	/*
+	
 	std::uintptr_t gworld = 0x117105c8 + va_text;
 	std::cout << "[+] game information:" << '\n';
 	std::cout << "\t[+] memory base address: 0x" << std::hex << memory::base << '\n';
 	std::cout << "\t[+] gworld address: 0x" << std::hex << gworld << '\n';
 	std::cout << "\t[+] uworld address: 0x" << std::hex << memory::read< std::uintptr_t >( gworld ) << '\n';
-	*/
-
+	
 	auto world = memory::read< std::uintptr_t >( va_text + 0x117105c8 );
 	std::cout << std::hex << world << '\n';
 
@@ -78,6 +90,7 @@ int main( int argc, char *argv[ ] ) {
 			std::cout << std::hex << address << " = " << std::hex << output << '\n';
 		}
 	}
+	*/
 
 	return 0;
 }

@@ -55,5 +55,6 @@
         "typeinfo": "cpp"
     },
     "cmake.sourceDirectory": "/media/hardrive/projects/elastic/host",
-    "C_Cpp.default.compilerPath": "/usr/bin/gcc"
+    "C_Cpp.default.compilerPath": "/usr/bin/gcc",
+    "C_Cpp.errorSquiggles": "disabled"
 }
