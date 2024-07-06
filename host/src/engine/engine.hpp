@@ -4,6 +4,7 @@
 #include "math.hpp"
 
 #include "../memory/memory.h"
+#include "../memory/offsets.hpp"
 
 
 class UObject { };
@@ -13,6 +14,7 @@ class AInfo { };
 class USceneComponent;
 class APawn;
 class ACharacter;
+class USkeletalMeshComponent;
 
 template <typename T>
 class TArray {
@@ -33,56 +35,37 @@ class FString : public TArray< wchar_t > {
 
 class AActor : public UObject { 
 public:
-    USceneComponent* GetRootComponent( ) { 
-        static std::size_t offset{ };
-        SIG_SCAN( module::base, offset, "\x48\x8B\x81\xCC\xCC\xCC\xCC\x48\x85\xC0", "x", 3 )
-
-        return memory::read< USceneComponent* >( reinterpret_cast< uintptr_t >( this + offset ) );
-    };
-
-    FVector GetVelocity( ) { 
-        static std::size_t offset{ };
-        SIG_SCAN( module::base, offset, "\xFF", "x", 0 )
-
-        return memory::read< FVector >( reinterpret_cast< uintptr_t >( this + offset ) );
-    };
-
-    FVector GetActorLocation( ) { 
-        static std::size_t offset{ };
-        SIG_SCAN( module::base, offset, "\xFF", "x", 0 )
-
-        return memory::read< FVector >( reinterpret_cast< uintptr_t >( this + offset ) );
-    };
+    USceneComponent* GetRootComponent( ) { };
+    FVector GetVelocity( ) { };
+    FVector GetActorLocation( ) { };
     void SetActorLocation( ) { };
     void GetActorRotation( ) { };
     void SetActorRotation( ) { };
 };
 
 class APlayerState : public UObject { 
-    void GetPawn( ) { };
+public:
+    APawn* GetPawn( ) {
+        return memory::read< APawn* >( reinterpret_cast< uintptr_t >( this ) + offsets::pawn_private );
+    };
     void GetPlayerName( ) { };
     void IsBot( ) { };
     void IsSpectator( ) { };
+    std::int32_t GetTeamIndex( ) {
+        return memory::read< std::int32_t >( reinterpret_cast< uintptr_t >( this ) + offsets::team_index );
+    }
 };
 
-class AController : public UObject {
+class AController : public AActor {
 public:
     void GetPlayerState( ) { };
     void GetStateName( ) { };
-    ACharacter* GetCharacter( ) { 
-        static std::size_t offset{ };
-        SIG_SCAN( module::base, offset, "\xFF", "x", 0 )
-
-        return memory::read< ACharacter* >( reinterpret_cast< uintptr_t >( this + offset ) );
-    };
+    ACharacter* GetCharacter( ) { };
     void GetControlRotation( ) { };
     void GetPlayerViewPoint( ) { };
     void GetViewTarget( );
     APawn* GetPawn( ) { 
-        static std::size_t offset{ };
-        SIG_SCAN( module::base, offset, "\xFF", "x", 0 )
-
-        return memory::read< APawn* >( reinterpret_cast< uintptr_t >( this + offset ) );
+        return memory::read< APawn* >( reinterpret_cast< std::uintptr_t >( this ) + offsets::local_pawn );
     };
     void SetControlRotation( ) { };
 };
@@ -93,7 +76,6 @@ public:
     void GetHitResultAtScreenPosition( ) { };
     void GetLocalPlayer( ) { };
     void GetPlatformUserId( ) { };
-    void GetPlayer( ) { };
     void GetPlayerCameraManager( ) { };
     void GetPlayerInput( ) { };
     void GetYawScale( ) { };
@@ -102,11 +84,21 @@ public:
 };
 
 class APawn : public AActor {
-    void GetController( ) { };
-    void GetControlRotation( ) { };
-    void GetPlayerState( ) { }
-    void GetViewRotation( ) { };
-    void GetRootComponent( ) { };
+public:
+    // void GetController( ) { };
+    //void GetControlRotation( ) { };
+    APlayerState* GetPlayerState( ) { 
+        return memory::read< APlayerState* >( reinterpret_cast< std::uintptr_t >( this ) + offsets::player_state );
+    }
+   // void GetViewRotation( ) { };
+    USceneComponent* GetRootComponent( ) { 
+        return memory::read< USceneComponent* >( reinterpret_cast< std::uintptr_t >( this ) + offsets::root_component );
+    };
+
+    USkeletalMeshComponent* GetMesh( ) {
+        return memory::read< USkeletalMeshComponent* >( reinterpret_cast< std::uintptr_t >( this ) + offsets::mesh );
+    }
+
 };
 
 class ACharacter : public APawn {
@@ -128,7 +120,16 @@ class AGameMode : public AGameModeBase {
 
 
 class AGameStateBase : public AInfo {
-    void GetPlayerStates( ) { };   
+public:
+    APlayerState* GetPlayerState( int index ) { 
+        auto state_array = memory::read< std::uintptr_t >( reinterpret_cast< std::uintptr_t >( this ) + offsets::player_array );
+        return memory::read< APlayerState* >( state_array + ( index * sizeof( std::uintptr_t ) ) );
+    };   
+
+    std::int32_t GetPlayerCount( ) {
+        auto state_array = memory::read< std::uintptr_t >( reinterpret_cast< std::uintptr_t >( this ) + offsets::player_array );
+        return memory::read< std::int32_t >( reinterpret_cast< std::uintptr_t >( this ) + offsets::player_array + sizeof( std::uintptr_t ) );
+    }
 };
 
 class AGameState : public AGameStateBase {
@@ -148,12 +149,7 @@ class APlayerCameraManager : public UObject {
 
 class UPlayer : public UObject {
 public:
-    APlayerController* GetPlayerController( ) {
-        static std::size_t offset{ };
-        SIG_SCAN( module::base, offset, "\xFF", "x", 0 )
-
-        return memory::read< APlayerController* >( reinterpret_cast< uintptr_t >( this + offset ) );
-    };
+    APlayerController* GetPlayerController( ) { };
 };
 
 class ULocalPlayer : public UPlayer {
@@ -164,6 +160,9 @@ public:
     void GetPlatformUserId( ) { };
     void GetViewpoint( ) { };
     void GetWorld( ) { };
+    APlayerController* GetPlayerController( ) {
+        return memory::read< APlayerController* >( (uintptr_t)this + offsets::player_controller );
+    }
     void SetPlatformUserId( ) { };
 };
 
@@ -177,34 +176,43 @@ class ULevel : public UObject {
 class UGameInstance : public UObject {
 public:
     ULocalPlayer* GetLocalPlayer( ) {
-        static std::size_t offset{ };
-        SIG_SCAN( module::base, offset, "\xFF", "x", 0 )
-
-        return memory::read< ULocalPlayer* >( reinterpret_cast< uintptr_t >( this + offset ) );
+        return memory::read< ULocalPlayer* >( memory::read< std::uintptr_t >(
+            reinterpret_cast< uintptr_t >( this ) + offsets::local_players
+        ));
     }
 };
 
 
 class UWorld : public UObject {
 public:
+    static UWorld* GetUWorld( ) {
+        static bool fixed = false;
+        static std::uintptr_t va_text{ };
+        if ( !fixed ) {
+            for (int i = 0; i < 25; i++) {
+                std::int32_t address{ };
 
-    void GetAuthorityGameMode( ) { };
+                if ( memory::read< std::int32_t >( memory::base + ( i * 0x1000 ) + 0x250 ) == 0x260E020B ) 
+                    va_text = memory::base + ( ( i + 1 ) * 0x1000 );
+            }
+
+            va_text += offsets::uworld;
+        }
+	   
+        return memory::read< UWorld* >( va_text );
+	}
+
     UGameInstance* GetOwningGameInstance( ) { 
-        static std::size_t offset{ };
-        SIG_SCAN( module::base, offset, "\xFF", "x", 0 )
-
-        return memory::read< UGameInstance* >( reinterpret_cast< uintptr_t >( this + offset ) );
+        return memory::read< UGameInstance* >( reinterpret_cast< uintptr_t >( this ) + offsets::game_instance  );
     };
 
-    void GetCameraLocation( ) { };
-    void GetCameraRotation( ) { };
     ULevel* GetPersistentLevel( ) { 
-        static std::size_t offset{ };
-        SIG_SCAN( module::base, offset, "\xFF", "x", 0 )
-
-        return memory::read< ULevel* >( reinterpret_cast< uintptr_t >( this + offset ) );
+        return memory::read< ULevel* >( reinterpret_cast< uintptr_t >( this ) + offsets::persistent_level  );
     };
-    void GetLevels( ) { };
+
+    AGameState* GetGameState( ) { 
+        return memory::read< AGameState* >( reinterpret_cast< uintptr_t >( this ) + offsets::game_state  );
+    }
 };
 
 
@@ -219,8 +227,17 @@ class USceneViewState : public UObject {
 
 class UPrimitiveCompoenent { };
 class USceneComponent : public UPrimitiveCompoenent { 
-    void GetForwardVector( ) { };
-    void GetComponentLocation( ) { };
+    FVector GetLocation( ) {
+        return memory::read< FVector >( reinterpret_cast< std::uintptr_t >( this ) + offsets::relative_location );
+    };
+
+    FVector GetVelocity( ) {
+        return memory::read< FVector >( reinterpret_cast< std::uintptr_t >( this ) + offsets::component_velocity );
+    };
+
+    FVector GetRotation( ) { 
+        return memory::read< FVector >( reinterpret_cast< std::uintptr_t >( this ) + offsets::relative_rotation );
+    };
 };
 
 class UMeshComponent : public USceneComponent {
@@ -229,12 +246,24 @@ class UMeshComponent : public USceneComponent {
 
 class UStaticMeshComponent : public UMeshComponent {};
 class USkinnedMeshComponent : public UStaticMeshComponent {
+public:
     void GetBoneName( ) { };
     void GetBoneCount( ) { };
+    FVector GetBoneTransform( std::int32_t id ) { 
+        auto bone_array = memory::read< std::uintptr_t >( reinterpret_cast< std::uintptr_t >( this ) + offsets::bone_array );
+        if ( !bone_array )
+            bone_array = memory::read< std::uintptr_t >( reinterpret_cast< std::uintptr_t >( this ) + offsets::bone_array_cache );
+
+        FTransform bone = memory::read< FTransform >( bone_array + ( id * 0x60 ) );
+        FTransform component_to_world = memory::read< FTransform >( reinterpret_cast< std::uintptr_t >( this ) + offsets::component_to_world );
+
+        FMatrix matrix = bone.to_matrix( ) * component_to_world.to_matrix( );
+        return FVector( matrix._41, matrix._42, matrix._43 );
+        
+    };
 };
 
 class USkeletalMeshComponent : public USkinnedMeshComponent {
-    void GetBoneLocation( ) { };
     void SetGlobalAnimationRateScale( ) { };
 };
 
