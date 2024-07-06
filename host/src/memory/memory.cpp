@@ -102,22 +102,19 @@ ModuleInfo memory::get_module( std::string module_name ) {
 }
 
 std::uintptr_t memory::signature_scan( ModuleInfo module_info, const char* pattern ) {
-
 	if ( !memory::base )
 		return 0;
-
-	std::cout << std::dec << strlen( pattern )  << '\n';
 
 	int pattern_length = strlen( pattern );
 	std::uintptr_t start = module_info.base;
 	std::uintptr_t end = module_info.base + module_info.size;
 	
-	for ( std::uintptr_t i = 0; i < module_info.size - pattern_length; i++)
+	for ( std::uintptr_t i = 0; i < module_info.size; i++)
     {
         bool found = true;
-        for ( std::uintptr_t j = 0; j < pattern_length; j++)
+        for ( std::size_t j = 0; j < pattern_length; j++)
         {
-			if ( pattern[ j ] == '\xCC' )
+			if ( pattern[ j ] == '\xCC' ) 
 				continue;
 
 			auto byte = memory::read< std::uint8_t >( start + i + j );
