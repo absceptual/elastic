@@ -8,7 +8,6 @@
     name = memory::read< std::uintptr_t >( name + offset ); 
 
 namespace offsets {
-    bool init( );
 
     inline std::uintptr_t uworld{ 0x117105c8 };
     inline std::uintptr_t game_instance{ 0x1D8 };
@@ -28,13 +27,16 @@ namespace offsets {
     inline std::uintptr_t mesh{ 0x318 };
     inline std::uintptr_t component_to_world{ 0x1c0 };
     inline std::uintptr_t bone_array{ 0x5B8 };
+    inline std::uintptr_t camera_manager{ 0x348 };
+    inline std::uintptr_t camera_cache_private{ 0x1390 };
     inline std::uintptr_t bone_array_cache{ };
     inline std::uintptr_t last_submit_time{ };
     inline std::uintptr_t last_submit_time_on_screen{ };
+
+    inline std::uintptr_t world_camera_location{ 0x110 };
+    inline std::uintptr_t world_camera_rotation{ 0x120 };
 }
 
-bool offsets::init( ) {
-    return true;
-}
+
 
 #endif 

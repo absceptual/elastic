@@ -30,7 +30,7 @@ file(GLOB_RECURSE sample-sources "src/*.c")
 file(GLOB_RECURSE sample-headers "src/*.h")
 file(GLOB_RECURSE sample-headers "src/*.hpp")
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 add_executable(
     example

@@ -3,6 +3,38 @@
 
 #include "engine.hpp"
 
+namespace camera {
+    inline FVector rotation{ };
+    inline FVector position{ };
+    inline float fov{ };
+
+    inline void update( ) {
+        static auto world = UWorld::GetUWorld( );
+        auto controller = world->GetOwningGameInstance( )->GetLocalPlayer( )->GetPlayerController( );
+        
+        // Rotation is stored in radians, let's convert it to degrees
+        const auto rotation_pointer = memory::read< std::uintptr_t >( std::uintptr_t( world ) + offsets::world_camera_rotation );
+        const auto location_pointer = memory::read< std::uintptr_t >( std::uintptr_t( world ) + offsets::world_camera_location );
+
+        struct RotationInfo
+		{
+			double pitch;
+			char pad_0008[24];
+			double yaw;
+			char pad_0028[424];
+			double roll;
+		} rotationInfo;
+
+		rotationInfo.pitch = memory::read< double >(rotation_pointer);
+		rotationInfo.yaw = memory::read<double>(rotation_pointer + 0x20);
+		rotationInfo.roll = memory::read< double >(rotation_pointer + 0x1d0);
+
+        camera::position = memory::read< FVector >(location_pointer);
+		camera::rotation.x = asin(rotationInfo.roll) * (180.0 / std::numbers::pi);
+		camera::rotation.y = ((atan2(rotationInfo.pitch * -1, rotationInfo.yaw) * (180.0 / std::numbers::pi)) * -1) * -1;
+		camera::fov = memory::read<float>((uintptr_t)controller + 0x394) * 90.f;
+    }
+}
 class AFortPawn : public ACharacter { 
     void GetCurrentWeapon( ) { };
     void GetCurrentWeaponList( ) { };

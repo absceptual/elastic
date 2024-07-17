@@ -5,7 +5,8 @@
 
 #include "memory/memory.h"
 #include "memory/offsets.hpp"
-#include "engine/engine.hpp"
+#include "engine/classes.hpp"
+#include "utility/utility.h"
 #include "cheat/aimbot.hpp"
 
 
@@ -24,28 +25,27 @@ int main( int argc, char *argv[ ] ) {
 
 	auto world = UWorld::GetUWorld( );
 	while (true) {
-		auto game_state = world->GetGameState( );
-		auto entity_count = game_state->GetPlayerCount( );
-		for (int i = 0; i < entity_count; ++i) {
-			auto player_state = game_state->GetPlayerState( i );
+		AGameState* game_state 		  = world->GetGameState( );
+		APlayerController* controller = world->GetOwningGameInstance( )->GetLocalPlayer( )->GetPlayerController( );
+		APawn* pawn 				  = controller->GetPawn( );
+		
+		for (std::uint32_t i = 0; i < game_state->GetPlayerCount( ); ++i) {
+			APlayerState* player_state = game_state->GetPlayerState( i );
+
+			if ( player_state == pawn->GetPlayerState( ) )
+				continue;
+
 			auto pawn = player_state->GetPawn( );
 			auto mesh = pawn->GetMesh( );
-			auto location = mesh->GetBoneTransform( 109 );
+			auto head = mesh->GetBoneTransform( 109 );
 
-			// std::cout << "(" << location.x << ", " << location.y << ", " << location.z << ")\n";
-			auto local_player_position = world->GetOwningGameInstance( )
-				->GetLocalPlayer( )
-				->GetPlayerController( )
-				->GetPawn( )
-				->GetMesh(  )
-				->GetBoneTransform( 109 );
-			auto difference = location - local_player_position;
-			std::cout << "distance from you: " << sqrt( pow(difference.x, 2) + pow(difference.y, 2) + pow(difference.z, 2) ) << '\n';
+			std::cout << utils::world_to_screen( head ) << '\n';
 		}
-
+		
 		std::this_thread::sleep_for( std::chrono::seconds(1));
 	}
 	
+
 	/*
 	while ( true ) {
 		std::uintptr_t address{ };

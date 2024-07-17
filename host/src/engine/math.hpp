@@ -1,6 +1,10 @@
 #ifndef MATH_HPP
 #define MATH_HPP
 
+#include <cmath>
+#include <numbers>
+#include <iostream>
+
 struct FVector
 {
     FVector( ) : x( ) , y( ) , z( ) { }
@@ -24,6 +28,7 @@ struct FVector
     friend bool operator == ( const FVector& a , const FVector& b ) { return a.x == b.x && a.y == b.y && a.z == b.z; }
     friend bool operator != ( const FVector& a , const FVector& b ) { return !( a == b ); }
 
+    friend std::ostream& operator<<( std::ostream& out, const FVector& vec ) { return out << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")"; }
     double dot( const FVector& V ) { return x * V.x + y * V.y + z * V.z; }
     double sizesquared( ) { return x * x + y * y + z * z; }
 
@@ -72,6 +77,11 @@ struct FVector
         this->z = 0;
     }
 
+    
+    double distance( const FVector& other ) const {
+        return std::sqrt( std::pow( x - other.x, 2 ) + std::pow( y - other.y, 2 ) + std::pow( z - other.z, 2 ) );
+    }
+
     double x, y, z;
 };
 
@@ -97,6 +107,7 @@ struct FVector2D
     operator bool( ) { return bool( this->x || this->y ); }
     friend bool operator == ( const FVector2D& A, const FVector2D& B ) { return A.x == B.x && A.y == A.y; }
     friend bool operator != ( const FVector2D& A, const FVector2D& B ) { return !( A == B ); }
+    friend std::ostream& operator<<( std::ostream& out, const FVector2D& vec ) { return out << "(" << vec.x << ", " << vec.y << ")"; }
 
     double x, y;
 };
@@ -134,6 +145,8 @@ struct FRotator
         return FVector( pitch , yaw , roll );
     }
 
+
+
     FRotator normalize( )
     {
         while ( this->yaw > 180.0 )
@@ -165,6 +178,38 @@ public:
         };
         float m[4][4];
     };
+
+    // stolen from github
+    static FMatrix vector_to_matrix( FVector rotation, FVector origin = FVector( 0, 0, 0 ) ) {
+        float radpitch = (rotation.x * M_PI / 180);
+		float radyaw = (rotation.y * M_PI / 180);
+		float radroll = (rotation.z * M_PI / 180);
+		float sp = sinf(radpitch);
+		float cp = cosf(radpitch);
+		float sy = sinf(radyaw);
+		float cy = cosf(radyaw);
+		float sr = sinf(radroll);
+		float cr = cosf(radroll);
+
+		FMatrix matrix{};
+		matrix.m[0][0] = cp * cy;
+		matrix.m[0][1] = cp * sy;
+		matrix.m[0][2] = sp;
+		matrix.m[0][3] = 0.f;
+		matrix.m[1][0] = sr * sp * cy - cr * sy;
+		matrix.m[1][1] = sr * sp * sy + cr * cy;
+		matrix.m[1][2] = -sr * cp;
+		matrix.m[1][3] = 0.f;
+		matrix.m[2][0] = -(cr * sp * cy + sr * sy);
+		matrix.m[2][1] = cy * sr - cr * sp * sy;
+		matrix.m[2][2] = cr * cp;
+		matrix.m[2][3] = 0.f;
+		matrix.m[3][0] = origin.x;
+		matrix.m[3][1] = origin.y;
+		matrix.m[3][2] = origin.z;
+		matrix.m[3][3] = 1.f;
+		return matrix;
+    }
 
     FMatrix operator* (const FMatrix pm2) {
         FMatrix pout{};
