@@ -1,12 +1,10 @@
 #include <vector>
 #include <thread>
 #include <chrono>
-#include <cmath>
 
 #include "memory/memory.h"
 #include "memory/offsets.hpp"
-#include "engine/classes.hpp"
-#include "utility/utility.h"
+#include "engine/engine.hpp"
 #include "cheat/aimbot.hpp"
 
 
@@ -68,6 +66,14 @@ int main( int argc, char *argv[ ] ) {
 		return -1;
 
 	std::cout << "[+] memflow initalized succesfully\n";
+
+	if ( !aimbot::init( ) )
+		return -1;
+
+	std::cout << "[+] aimbot module initalized succesfully\n";
+
+	std::cout << aimbot::mouse->move( 20000, 400 ) << '\n';
+
 	std::cout << "[!] attempting to fix directory table base (cr3)\n";
 
 	aimbot::init( );

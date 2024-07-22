@@ -32,7 +32,6 @@ struct FVector
     friend bool operator == ( const FVector& a , const FVector& b ) { return a.x == b.x && a.y == b.y && a.z == b.z; }
     friend bool operator != ( const FVector& a , const FVector& b ) { return !( a == b ); }
 
-    friend std::ostream& operator<<( std::ostream& out, const FVector& vec ) { return out << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")"; }
     double dot( const FVector& V ) { return x * V.x + y * V.y + z * V.z; }
     double sizesquared( ) { return x * x + y * y + z * z; }
 
