@@ -15,6 +15,7 @@ class USceneComponent;
 class APawn;
 class ACharacter;
 class USkeletalMeshComponent;
+class APlayerCameraManager;
 
 template <typename T>
 class TArray {
@@ -35,9 +36,9 @@ class FString : public TArray< wchar_t > {
 
 class AActor : public UObject { 
 public:
-    USceneComponent* GetRootComponent( ) { };
-    FVector GetVelocity( ) { };
-    FVector GetActorLocation( ) { };
+    void GetRootComponent( ) {  };
+    void GetVelocity( ) { };
+    void GetActorLocation( ) { };
     void SetActorLocation( ) { };
     void GetActorRotation( ) { };
     void SetActorRotation( ) { };
@@ -58,9 +59,11 @@ public:
 
 class AController : public AActor {
 public:
-    void GetPlayerState( ) { };
+    APlayerState* GetPlayerState( ) { 
+        return memory::read< APlayerState* >( reinterpret_cast< std::uintptr_t >( this ) + offsets::player_state );
+    };
     void GetStateName( ) { };
-    ACharacter* GetCharacter( ) { };
+    void GetCharacter( ) { };
     void GetControlRotation( ) { };
     void GetPlayerViewPoint( ) { };
     void GetViewTarget( );
@@ -76,7 +79,9 @@ public:
     void GetHitResultAtScreenPosition( ) { };
     void GetLocalPlayer( ) { };
     void GetPlatformUserId( ) { };
-    void GetPlayerCameraManager( ) { };
+    APlayerCameraManager* GetPlayerCameraManager( ) {
+        return memory::read< APlayerCameraManager* >( reinterpret_cast< std::uintptr_t >( this ) + offsets::camera_manager );
+    };
     void GetPlayerInput( ) { };
     void GetYawScale( ) { };
     void GetPitchScale( ) { };
@@ -141,15 +146,35 @@ class AWorldSettings : public AInfo {
     void GetWorldGravity( ) { };
 };
 
-class APlayerCameraManager : public UObject {
-    void GetFOVAngle( ) { };
-    void GetCameraLocation( ) { };
-    void GetCameraRotation( ) { };
+struct FMinimalViewInfo {
+    FVector Location;
+    FRotator Rotation;
+    float FOV;
 };
+
+class APlayerCameraManager : public UObject {
+public:
+
+    float GetFOV( ) { 
+        static auto camera_cache = memory::read< std::uintptr_t >( reinterpret_cast< std::uintptr_t >( this ) + offsets::camera_cache_private );
+        return memory::read< FMinimalViewInfo >( camera_cache + 0x10 ).FOV;
+    };
+
+    FVector GetCameraLocation( ) { 
+        static auto camera_cache = memory::read< std::uintptr_t >( reinterpret_cast< std::uintptr_t >( this ) + offsets::camera_cache_private );
+        return memory::read< FMinimalViewInfo >( camera_cache + 0x10 ).Location;
+    };
+
+    FRotator GetCameraRotation( ) { 
+        static auto camera_cache = memory::read< std::uintptr_t >( reinterpret_cast< std::uintptr_t >( this ) + offsets::camera_cache_private );
+        return memory::read< FMinimalViewInfo >( camera_cache + 0x10 ).Rotation;
+    };
+};
+
 
 class UPlayer : public UObject {
 public:
-    APlayerController* GetPlayerController( ) { };
+    void GetPlayerController( ) {  };
 };
 
 class ULocalPlayer : public UPlayer {
@@ -160,7 +185,7 @@ public:
     void GetPlatformUserId( ) { };
     void GetViewpoint( ) { };
     void GetWorld( ) { };
-    APlayerController* GetPlayerController( ) {
+    APlayerController* GetPlayerController( )  {
         return memory::read< APlayerController* >( (uintptr_t)this + offsets::player_controller );
     }
     void SetPlatformUserId( ) { };
@@ -185,7 +210,7 @@ public:
 
 class UWorld : public UObject {
 public:
-    static UWorld* GetUWorld( ) {
+     static UWorld* GetUWorld( ) {
         static bool fixed = false;
         static std::uintptr_t va_text{ };
         if ( !fixed ) {
@@ -201,7 +226,6 @@ public:
 	   
         return memory::read< UWorld* >( va_text );
 	}
-
     UGameInstance* GetOwningGameInstance( ) { 
         return memory::read< UGameInstance* >( reinterpret_cast< uintptr_t >( this ) + offsets::game_instance  );
     };
@@ -271,4 +295,6 @@ class UItemDefinitionBase : public UObject {
     void GetItemName( ) { };
 };
 
+
 #endif
+

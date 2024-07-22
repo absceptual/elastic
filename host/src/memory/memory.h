@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
+#include <string>
 
 #include "memflow.hpp"
 
@@ -24,6 +25,7 @@ namespace memory {
     
     bool init( );
     bool attach( );
+    void detach( );
     ModuleInfo get_module( const std::string module_name );
     std::uintptr_t signature_scan( const ModuleInfo module_info, const char* pattern );
 
@@ -51,10 +53,10 @@ namespace memory {
 
 
     template < typename T >
-    inline bool write( std::uintptr_t address, const T& value )
+    inline bool write( std::uintptr_t address, T& value )
     {
         std::lock_guard< std::mutex > l( m );
-        return base && process.write_raw( address, CSliceRef< uint8_t >( reinterpret_cast< char * >( &value ), sizeof( T ) ) ) == 0;
+        return process.write_raw( address, CSliceRef< uint8_t >( reinterpret_cast< char * >( &value ), sizeof( T ) ) ) == 0;
     }
 
     template <typename T>

@@ -7,12 +7,13 @@
 #include <arpa/inet.h>
  
 aimbot::mouse_t::mouse_t( ) 
-: m_ready{ false }, m_conn{ 0 }, m_address{ "127.0.0.1" }, m_port{ 7831 } {
+: m_ready{ false }, m_conn{ 0 }, m_address{ "127.0.0.1" }, m_port{ 9900 } {
 
     m_conn = socket( AF_INET, SOCK_STREAM, 0 );
     if ( m_conn == -1 ) {
         perror( "[aimbot::mouse( )] failed to initalize a socket");
     }
+    std::cout << "socket intialized!\n";
 
     struct sockaddr_in socket_address{};
     socket_address.sin_family = AF_INET;
@@ -30,6 +31,7 @@ aimbot::mouse_t::mouse_t( )
         close( m_conn );
         perror( "[aimbot::mouse( )] failed to connect to the socket (is the spice server running?)");
     }
+     std::cout << "connected\n";
 
     m_ready = true;
     std::string_view message{R"({ "execute": "qmp_capabilities" })"};
@@ -37,6 +39,7 @@ aimbot::mouse_t::mouse_t( )
     auto status = this->send( message );
     if ( !status ) 
         perror( "[aimbot::mouse( )] failed to enable qmp capabilities");
+
 }
  
 aimbot::mouse_t::~mouse_t( ) {
@@ -50,7 +53,7 @@ bool aimbot::mouse_t::move( const std::int32_t x, const std::int32_t y ) const {
         "  \"arguments\": {\n"
         "    \"events\": [\n"
         "      {\n"
-        "        \"type\": \"abs\",\n"
+        "        \"type\": \"rel\",\n"
         "        \"data\": {\n"
         "          \"axis\": \"x\",\n"
         "          \"value\": " +
@@ -58,7 +61,7 @@ bool aimbot::mouse_t::move( const std::int32_t x, const std::int32_t y ) const {
                                   "        }\n"
                                   "      },\n"
                                   "      {\n"
-                                  "        \"type\": \"abs\",\n"
+                                  "        \"type\": \"rel\",\n"
                                   "        \"data\": {\n"
                                   "          \"axis\": \"y\",\n"
                                   "          \"value\": " +
@@ -71,6 +74,8 @@ bool aimbot::mouse_t::move( const std::int32_t x, const std::int32_t y ) const {
     
     return this->send( message );
 }
+
+
  
 bool aimbot::mouse_t::send( std::string_view message ) const {
     ssize_t sent = ::send( m_conn, message.data( ), message.size( ), 0 );

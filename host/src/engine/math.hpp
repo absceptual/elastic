@@ -1,6 +1,14 @@
 #ifndef MATH_HPP
 #define MATH_HPP
 
+#include <cmath>
+#include <numbers>
+#include <iostream>
+
+#define RAD2DEG( radians ) ( radians *  180.0 / std::numbers::pi  ) 
+
+struct FVector4 { double x, y, z, w; };
+
 struct FVector
 {
     FVector( ) : x( ) , y( ) , z( ) { }
@@ -24,6 +32,7 @@ struct FVector
     friend bool operator == ( const FVector& a , const FVector& b ) { return a.x == b.x && a.y == b.y && a.z == b.z; }
     friend bool operator != ( const FVector& a , const FVector& b ) { return !( a == b ); }
 
+    friend std::ostream& operator<<( std::ostream& out, const FVector& vec ) { return out << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")"; }
     double dot( const FVector& V ) { return x * V.x + y * V.y + z * V.z; }
     double sizesquared( ) { return x * x + y * y + z * z; }
 
@@ -72,6 +81,13 @@ struct FVector
         this->z = 0;
     }
 
+    
+    double distance( const FVector& other ) const {
+        return std::sqrt( std::pow( x - other.x, 2 ) + std::pow( y - other.y, 2 ) + std::pow( z - other.z, 2 ) );
+    }
+
+    
+
     double x, y, z;
 };
 
@@ -97,6 +113,7 @@ struct FVector2D
     operator bool( ) { return bool( this->x || this->y ); }
     friend bool operator == ( const FVector2D& A, const FVector2D& B ) { return A.x == B.x && A.y == A.y; }
     friend bool operator != ( const FVector2D& A, const FVector2D& B ) { return !( A == B ); }
+    friend std::ostream& operator<<( std::ostream& out, const FVector2D& vec ) { return out << "(" << vec.x << ", " << vec.y << ")"; }
 
     double x, y;
 };
@@ -134,6 +151,8 @@ struct FRotator
         return FVector( pitch , yaw , roll );
     }
 
+
+
     FRotator normalize( )
     {
         while ( this->yaw > 180.0 )
@@ -157,14 +176,46 @@ class FMatrix {
 public:
     union {
         struct {
-            float        _11, _12, _13, _14;
-            float        _21, _22, _23, _24;
-            float        _31, _32, _33, _34;
-            float        _41, _42, _43, _44;
+            double        _11, _12, _13, _14;
+            double        _21, _22, _23, _24;
+            double        _31, _32, _33, _34;
+            double        _41, _42, _43, _44;
 
         };
-        float m[4][4];
+        double m[4][4];
     };
+
+    // stolen from github
+    static FMatrix vector_to_matrix( FVector rotation, FVector origin = FVector( 0, 0, 0 ) ) {
+        float radpitch = (rotation.x * std::numbers::pi / 180);
+		float radyaw = (rotation.y * std::numbers::pi / 180);
+		float radroll = (rotation.z * std::numbers::pi / 180);
+		float sp = sinf(radpitch);
+		float cp = cosf(radpitch);
+		float sy = sinf(radyaw);
+		float cy = cosf(radyaw);
+		float sr = sinf(radroll);
+		float cr = cosf(radroll);
+
+		FMatrix matrix{};
+		matrix.m[0][0] = cp * cy;
+		matrix.m[0][1] = cp * sy;
+		matrix.m[0][2] = sp;
+		matrix.m[0][3] = 0.f;
+		matrix.m[1][0] = sr * sp * cy - cr * sy;
+		matrix.m[1][1] = sr * sp * sy + cr * cy;
+		matrix.m[1][2] = -sr * cp;
+		matrix.m[1][3] = 0.f;
+		matrix.m[2][0] = -(cr * sp * cy + sr * sy);
+		matrix.m[2][1] = cy * sr - cr * sp * sy;
+		matrix.m[2][2] = cr * cp;
+		matrix.m[2][3] = 0.f;
+		matrix.m[3][0] = origin.x;
+		matrix.m[3][1] = origin.y;
+		matrix.m[3][2] = origin.z;
+		matrix.m[3][3] = 1.f;
+		return matrix;
+    }
 
     FMatrix operator* (const FMatrix pm2) {
         FMatrix pout{};
@@ -188,6 +239,14 @@ public:
 	    return pout;
     }
 
+    friend std::ostream& operator<<(std::ostream& out, const FMatrix& matrix) {
+        out << "[" << matrix.m[0][0] << ", " << matrix.m[0][1] << ", " << matrix.m[0][2] << ", " << matrix.m[0][3] << "]\n";
+        out << "[" << matrix.m[1][0] << ", " << matrix.m[1][1] << ", " << matrix.m[1][2] << ", " << matrix.m[1][3] << "]\n";
+        out << "[" << matrix.m[2][0] << ", " << matrix.m[2][1] << ", " << matrix.m[2][2] << ", " << matrix.m[2][3] << "]\n";
+        out << "[" << matrix.m[3][0] << ", " << matrix.m[3][1] << ", " << matrix.m[3][2] << ", " << matrix.m[3][3] << "]";
+
+        return out;
+    }
 
 };
 
@@ -245,5 +304,22 @@ public:
         return m;
     }
 };
+
+struct FViewMatrices
+{
+	/** ViewToClip : UE projection matrix projects such that clip space Z=1 is the near plane, and Z=0 is the infinite far plane. */
+	FMatrix		ProjectionMatrix;
+	/** ViewToClipNoAA : UE projection matrix projects such that clip space Z=1 is the near plane, and Z=0 is the infinite far plane. Don't apply any AA jitter */
+	FMatrix		ProjectionNoAAMatrix;
+	/** ClipToView : UE projection matrix projects such that clip space Z=1 is the near plane, and Z=0 is the infinite far plane. */
+	FMatrix		InvProjectionMatrix;
+	// WorldToView..
+	FMatrix		ViewMatrix;
+	// ViewToWorld..
+	FMatrix		InvViewMatrix;
+	// WorldToClip : UE projection matrix projects such that clip space Z=1 is the near plane, and Z=0 is the infinite far plane. */
+	FMatrix		ViewProjectionMatrix;
+};
+
 
 #endif
